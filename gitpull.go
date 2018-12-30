@@ -28,7 +28,7 @@ func GitPull(path string, wg *sync.WaitGroup) error {
 	if chdirErr != nil {
 		fmt.Println(chdirErr)
 	}
-	cmd := exec.Command("git","pull")
+	cmd := exec.Command("git", "pull")
 
 	//fmt.Println(cmd.Args)
 
@@ -67,7 +67,6 @@ func GitPull(path string, wg *sync.WaitGroup) error {
 	return nil
 }
 
-
 func getCurrentDirectory() string {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
@@ -91,10 +90,7 @@ func main() {
 	fmt.Println("selectedDirectory: ", targetDir)
 	fmt.Println()
 
-	PathSep := string(os.PathSeparator)
 	DotGit := ".git"
-
-	subPath := PathSep + DotGit
 
 	var wg sync.WaitGroup
 
@@ -104,10 +100,17 @@ func main() {
 		}
 		if info.IsDir() {
 			if strings.EqualFold(info.Name(), DotGit) {
-				dir := strings.TrimRight(path, subPath)
+				dir := strings.TrimRight(path, DotGit)
 				fmt.Println("=====> ", dir)
 				wg.Add(1)
-				go GitPull(dir, &wg)
+				go func() {
+					defer func() {
+						if r := recover(); r != nil {
+							fmt.Println(r)
+						}
+					}()
+					GitPull(dir, &wg)
+				}()
 			}
 			return nil
 		}
